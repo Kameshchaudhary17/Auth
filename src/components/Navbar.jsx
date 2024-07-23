@@ -16,9 +16,12 @@ const Navbar = () => {
             <button onClick={logout} className="py-2 px-2 font-medium text-gray-500 rounded hover:bg-red-500 hover:text-white transition duration-300">Log Out</button>
           </>
         ) : (
+          <>
           <Link to="/login" className="py-2 px-2 font-medium text-gray-500 rounded hover:bg-green-500 hover:text-white transition duration-300">Log In</Link>
+          <Link to="/register" className="py-2 px-2 font-medium text-gray-500 rounded hover:bg-green-500 hover:text-white transition duration-300">Sign Up</Link>
+          </>
         )}
-        <Link to="/register" className="py-2 px-2 font-medium text-gray-500 rounded hover:bg-green-500 hover:text-white transition duration-300">Sign Up</Link>
+        
       </div>
     </nav>
   );

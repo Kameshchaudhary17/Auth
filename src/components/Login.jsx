@@ -21,11 +21,13 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5555/login', formData);
+      const response = await axios.post('http://localhost:5555/login', formData,{
+        "withCredentials":true
+      });
       login(response.data.user); // Save user data in context
       localStorage.setItem('token', response.data.token); // Save token in local storage
       setMessage('Login successful');
-      navigate('/'); // Redirect to home page or dashboard
+      navigate('/blog'); // Redirect to home page or dashboard
     } catch (error) {
       if (error.response) {
         setMessage(error.response.data.message);

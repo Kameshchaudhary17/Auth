@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const Blog = () => {
-  const [posts, setPosts] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    imageUrl: '',
     description: ''
   });
-  const [file, setFile] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -18,22 +16,17 @@ const Blog = () => {
     }));
   };
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newPost = { ...formData };
-    
-    if (file) {
-      newPost.imageUrl = URL.createObjectURL(file);
+    try {
+      const response = await axios.post('http://localhost:5555/create', formData, { withCredentials: true });
+      console.log(response.data);
+      // Optionally reset form and close it
+      setFormData({ title: '', description: '' });
+      setIsFormOpen(false);
+    } catch (error) {
+      console.error('Error creating blog post:', error);
     }
-    
-    setPosts([newPost, ...posts]);
-    setFormData({ title: '', imageUrl: '', description: '' });
-    setFile(null);
-    setIsFormOpen(false);
   };
 
   return (
@@ -62,32 +55,6 @@ const Blog = () => {
               required
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="imageUpload">
-              Upload Image
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="imageUpload"
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="imageUrl">
-              Or Image URL
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="imageUrl"
-              type="url"
-              placeholder="Enter image URL"
-              name="imageUrl"
-              value={formData.imageUrl}
-              onChange={handleInputChange}
-            />
-          </div>
           <div className="mb-6">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
               Description
@@ -108,29 +75,35 @@ const Blog = () => {
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               type="submit"
             >
-              Post Blog
+              Create
             </button>
           </div>
         </form>
       )}
 
-      {posts.map((post, index) => (
-        <div key={index} className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
-          <img 
-            className="w-full h-64 object-cover object-center"
-            src={post.imageUrl} 
-            alt={post.title}
-          />
-          <div className="p-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              {post.title}
-            </h1>
-            <p className="text-gray-700 leading-relaxed">
-              {post.description}
-            </p>
+      {/* Render posts (this part should be updated to reflect your actual data rendering) */}
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
+        <div className="p-6">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            title
+          </h1>
+          <p className="text-gray-700 leading-relaxed">
+            description
+          </p>
+          <div className="flex justify-end">
+            <button
+              className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2"
+            >
+              Edit
+            </button>
+            <button
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Delete
+            </button>
           </div>
         </div>
-      ))}
+      </div>
     </div>
   );
 };
