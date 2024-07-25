@@ -9,6 +9,7 @@ import Login from './components/Login'
 import Home from './components/Home'
 import RegisterForm from './components/RegisterForm'
 import Blog from './components/Blog'
+import PublicBlog from './components/PublicBlog'
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path = '/' element = {<Home/>} />
         <Route path = '/login' element = {<Login/>} />
         <Route path = '/register' element = {<RegisterForm/>} />
+        <Route path = '/public' element = {<PublicBlog/>} />
         <Route path = '/blog' element = {<div className="bg-gray-100 min-h-screen py-8"><Blog/></div>} />
         
   
