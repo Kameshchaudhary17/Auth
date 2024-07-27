@@ -27,6 +27,7 @@ const Navbar = () => {
                 <>
                 <Link to="/public" className="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">All Blogs</Link>
                 <Link to="/blog" className="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">My Blogs</Link>
+                <Link to="/profile" className="py-4 px-2 text-gray-500 font-semibold hover:text-green-500 transition duration-300">Profile</Link>
                 </>
               )}
             </div>

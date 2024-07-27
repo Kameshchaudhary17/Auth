@@ -10,6 +10,7 @@ import Home from './components/Home'
 import RegisterForm from './components/RegisterForm'
 import Blog from './components/Blog'
 import PublicBlog from './components/PublicBlog'
+import Profile from './components/Profile'
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         <Route path = '/login' element = {<Login/>} />
         <Route path = '/register' element = {<RegisterForm/>} />
         <Route path = '/public' element = {<PublicBlog/>} />
+        <Route path = '/profile' element = {<Profile/>} />
         <Route path = '/blog' element = {<div className="bg-gray-100 min-h-screen py-8"><Blog/></div>} />
         
   

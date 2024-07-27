@@ -164,20 +164,32 @@ const Blog = () => {
       )}
 
       <div>
-        {blogs.map((blog) => (
-          <div key={blog.id} className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
-            <div className="p-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                {blog.title}
-              </h1>
-              <p className="text-gray-700 leading-relaxed mb-4">
-                {blog.description}
-              </p>
-              {blog.image && (
-                <div className="mb-4 overflow-hidden" style={{ maxHeight: '400px' }}>
-                  <img src={`http://localhost:5555/${blog.image}`} alt={blog.title} className="mb-4" />
-                </div>
-              )}
+      {blogs.map((blog) => (
+    <div key={blog.id} className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
+      <div className="p-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          {blog.title}
+        </h1>
+        <p className="text-gray-700 leading-relaxed mb-4">
+          {blog.description}
+        </p>
+        {blog.image && (
+          <div className="mb-4 overflow-hidden" style={{ position: 'relative', paddingBottom: '56.25%' }}>
+            <img
+              src={`http://localhost:5555/${blog.image}`}
+              alt={blog.title}
+              style={{ 
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover' 
+              }}
+              className="mb-4"
+            />
+          </div>
+        )}
               <div className="flex justify-end">
                 <button
                   className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2"
