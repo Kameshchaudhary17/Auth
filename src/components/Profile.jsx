@@ -8,7 +8,7 @@ const Profile = () => {
 
     const user = {
         name: 'Lionel Messi',
-        photo: 'https://via.placeholder.com/150', // Replace with the actual profile photo URL
+        photo: 'https://th.bing.com/th/id/OIP.Mxl-OlbgXDjQ5LzRxR-TNgHaDt?w=329&h=175&c=7&r=0&o=5&dpr=1.3&pid=1.7', // Replace with the actual profile photo URL
         address: 'Rosario, Argentina',
         contact: '+54 123 456 789',
         bio: 'Lionel Messi is a professional footballer from Argentina, widely considered one of the greatest players of all time. He has won numerous awards and accolades throughout his career.',

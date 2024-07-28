@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const PublicBlog = () => {
+
+  const token = localStorage.getItem('token');
+  if (!token) return <h1>Please login</h1>;
+
   const [blogs, setBlogs] = useState([]);
 
   useEffect(() => {
