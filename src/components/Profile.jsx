@@ -158,10 +158,10 @@ const Profile = () => {
             />
           </div>
           <div className="text-center md:text-left">
-            <h1 className="text-4xl font-bold text-gray-900">{profileData.name || 'Name'}</h1>
-            <p className="mt-2 text-gray-600">{profileData.address || 'Address'}</p>
-            <p className="mt-1 text-gray-600">{profileData.contact || 'Contact'}</p>
-            <p className="mt-4 text-gray-700">{profileData.bio || 'Bio'}</p>
+            <h1 className="text-4xl font-bold text-gray-900">Name</h1>
+            <p className="mt-2 text-gray-600">Address</p>
+            <p className="mt-1 text-gray-600">Contact</p>
+            <p className="mt-4 text-gray-700">Bio</p>
           </div>
         </div>
         <div className="flex justify-end mt-4">
