@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Profile = () => {
@@ -6,14 +6,37 @@ const Profile = () => {
   if (!token) return <h1>Please login</h1>;
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editProfile, setEditProfile] = useState(null);
   const [profileData, setProfileData] = useState({
     name: '',
     address: '',
     contact: '',
     bio: '',
-    image: null,
+    imageFile: null,
+    imageUrl: '',
   });
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const response = await axios.get('http://localhost:5555/getprofile', {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const profile = response.data;
+      setProfileData({
+        ...profile,
+        imageFile: null,
+        imageUrl: profile.image ? `http://localhost:5555/${profile.image}` : '',
+      });
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -21,7 +44,7 @@ const Profile = () => {
   };
 
   const handleFileChange = (e) => {
-    setProfileData((prevData) => ({ ...prevData, image: e.target.files[0] }));
+    setProfileData((prevData) => ({ ...prevData, imageFile: e.target.files[0] }));
   };
 
   const handleSubmit = async (e) => {
@@ -33,44 +56,28 @@ const Profile = () => {
       formData.append('address', profileData.address);
       formData.append('contact', profileData.contact);
       formData.append('bio', profileData.bio);
-      if (profileData.image) {
-        formData.append('image', profileData.image);
+      if (profileData.imageFile) {
+        formData.append('image', profileData.imageFile);
       }
 
-      if (editProfile) {
-        // Update existing profile
-        await axios.put(`http://localhost:5555/updateprofile`, formData, {
-          withCredentials: true,
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-      } else {
-        // Create new profile
-        await axios.post('http://localhost:5555/createProfile', formData, {
-          withCredentials: true,
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-      }
+      await axios.post('http://localhost:5555/createprofile', formData, {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-      // Reset form and close it
-      setProfileData({ name: '', address: '', contact: '', bio: '', image: null });
       setIsFormOpen(false);
-      setEditProfile(null);
+      fetchProfile(); // Refresh profile data after creation
     } catch (error) {
-      console.error('Error creating/updating profile:', error);
+      console.error('Error creating profile:', error);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto my-8 p-4">
       <button
-        onClick={() => {
-          setIsFormOpen(true);
-          setEditProfile(null);
-        }}
+        onClick={() => setIsFormOpen(true)}
         className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
       >
         Add Profile
@@ -139,7 +146,7 @@ const Profile = () => {
                 type="submit"
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               >
-                {editProfile ? 'Edit' : 'Save'}
+                Save
               </button>
             </div>
           </form>
@@ -147,35 +154,27 @@ const Profile = () => {
       )}
 
       {/* Display profile information */}
-      <div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg mt-10">
-        {/* Assuming profileData contains the existing profile data */}
-        <div className="flex flex-col items-center md:flex-row md:items-start md:space-x-8">
-          <div className="flex-shrink-0 mb-6 md:mb-0">
-            <img
-              className="h-32 w-32 rounded-full object-cover"
-              src={profileData.image || ""}
-              alt="Profile"
-            />
-          </div>
-          <div className="text-center md:text-left">
-            <h1 className="text-4xl font-bold text-gray-900">Name</h1>
-            <p className="mt-2 text-gray-600">Address</p>
-            <p className="mt-1 text-gray-600">Contact</p>
-            <p className="mt-4 text-gray-700">Bio</p>
+      {profileData.name && (
+        <div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg mt-10">
+          <div className="flex flex-col items-center md:flex-row md:items-start md:space-x-8">
+            <div className="flex-shrink-0 mb-6 md:mb-0">
+              {profileData.imageUrl && (
+                <img
+                  className="h-32 w-32 rounded-full object-cover"
+                  src={profileData.imageUrl}
+                  alt="Profile"
+                />
+              )}
+            </div>
+            <div className="text-center md:text-left">
+              <h1 className="text-4xl font-bold text-gray-900">{profileData.name}</h1>
+              <p className="mt-2 text-gray-600">{profileData.address}</p>
+              <p className="mt-1 text-gray-600">{profileData.contact}</p>
+              <p className="mt-4 text-gray-700">{profileData.bio}</p>
+            </div>
           </div>
         </div>
-        <div className="flex justify-end mt-4">
-          <button
-            onClick={() => {
-              setIsFormOpen(true);
-              setEditProfile(profileData);
-            }}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Edit Profile
-          </button>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

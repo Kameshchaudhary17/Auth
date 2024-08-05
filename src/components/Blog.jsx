@@ -1,208 +1,178 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const Blog = () => {
+const Profile = () => {
   const token = localStorage.getItem('token');
   if (!token) return <h1>Please login</h1>;
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    id: null,
-    title: '',
-    description: '',
-    image: null
+  const [profiles, setProfiles] = useState([]);
+  const [profileData, setProfileData] = useState({
+    name: '',
+    address: '',
+    contact: '',
+    bio: '',
+    imageFile: null,
+    imageUrl: '',
   });
-  const [blogs, setBlogs] = useState([]);
-  const [editingBlogId, setEditingBlogId] = useState(null);
 
   useEffect(() => {
-    fetchUserBlogs();
+    fetchProfiles();
   }, []);
 
-  const fetchUserBlogs = async () => {
+  const fetchProfiles = async () => {
     try {
-      const response = await axios.get('http://localhost:5555/get', { withCredentials: true });
-      setBlogs(response.data);
+      const response = await axios.get('http://localhost:5555/getprofiles', {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const profiles = response.data.map(profile => ({
+        ...profile,
+        imageFile: null,
+        imageUrl: profile.image ? `http://localhost:5555/${profile.image}` : '',
+      }));
+      setProfiles(profiles);
     } catch (error) {
-      console.error('Error fetching user blogs:', error);
+      console.error('Error fetching profiles:', error);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value
-    }));
+    setProfileData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
-    setFormData(prevData => ({
-      ...prevData,
-      image: e.target.files[0]
-    }));
+  const handleFileChange = (e) => {
+    setProfileData((prevData) => ({ ...prevData, imageFile: e.target.files[0] }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const formDataWithImage = new FormData();
-      formDataWithImage.append('title', formData.title);
-      formDataWithImage.append('description', formData.description);
-      if (formData.image) {
-        formDataWithImage.append('image', formData.image);
+      const formData = new FormData();
+      formData.append('name', profileData.name);
+      formData.append('address', profileData.address);
+      formData.append('contact', profileData.contact);
+      formData.append('bio', profileData.bio);
+      if (profileData.imageFile) {
+        formData.append('image', profileData.imageFile);
       }
-      if (editingBlogId) {
-        formDataWithImage.append('id', formData.id);
-        await axios.put('http://localhost:5555/update', formDataWithImage, {
-          withCredentials: true,
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-      } else {
-        await axios.post('http://localhost:5555/create', formDataWithImage, {
-          withCredentials: true,
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-      }
-      fetchUserBlogs();
-      setFormData({ id: null, title: '', description: '', image: null });
-      setEditingBlogId(null);
+
+      await axios.post('http://localhost:5555/createprofile', formData, {
+        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
       setIsFormOpen(false);
+      fetchProfiles(); // Refresh profiles data after creation
     } catch (error) {
-      console.error('Error creating/updating blog post:', error);
+      console.error('Error creating profile:', error);
     }
-  };
-
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5555/delete/${id}`, { withCredentials: true });
-      setBlogs(blogs.filter(blog => blog.id !== id));
-    } catch (error) {
-      console.error('Error deleting blog post:', error);
-    }
-  };
-
-  const handleEdit = (blog) => {
-    setFormData({
-      id: blog.id,
-      title: blog.title,
-      description: blog.description,
-      image: null
-    });
-    setEditingBlogId(blog.id);
-    setIsFormOpen(true);
   };
 
   return (
     <div className="max-w-4xl mx-auto my-8 p-4">
       <button
-        onClick={() => {
-          setIsFormOpen(!isFormOpen);
-          if (!isFormOpen) {
-            setFormData({ id: null, title: '', description: '', image: null });
-            setEditingBlogId(null);
-          }
-        }}
+        onClick={() => setIsFormOpen(true)}
         className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
       >
-        {isFormOpen ? 'Close Form' : 'Create New Blog Post'}
+        Add Profile
       </button>
 
       {isFormOpen && (
-        <form onSubmit={handleSubmit} className="mb-8 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
-              Title
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="title"
-              type="text"
-              placeholder="Enter title"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
-              Description
-            </label>
-            <textarea
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="description"
-              placeholder="Enter description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              rows="4"
-              required
-            ></textarea>
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="image">
-              Image
-            </label>
-            <input
-              type="file"
-              id="image"
-              name="image"
-              onChange={handleImageChange}
-              className="w-full"
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="submit"
-            >
-              {editingBlogId ? 'Update' : 'Create'}
-            </button>
-          </div>
-        </form>
+        <div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex flex-col items-center md:flex-row md:items-start md:space-x-8">
+              <div className="flex-shrink-0 mb-6 md:mb-0">
+                <input
+                  type="file"
+                  name="image"
+                  onChange={handleFileChange}
+                  className="border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div className="w-full">
+                <input
+                  type="text"
+                  name="name"
+                  value={profileData.name}
+                  onChange={handleInputChange}
+                  placeholder="Name"
+                  className="w-full border border-gray-300 rounded-lg p-2 mb-4"
+                  required
+                />
+                <input
+                  type="text"
+                  name="address"
+                  value={profileData.address}
+                  onChange={handleInputChange}
+                  placeholder="Address"
+                  className="w-full border border-gray-300 rounded-lg p-2 mb-4"
+                  required
+                />
+                <input
+                  type="text"
+                  name="contact"
+                  value={profileData.contact}
+                  onChange={handleInputChange}
+                  placeholder="Contact"
+                  className="w-full border border-gray-300 rounded-lg p-2 mb-4"
+                  required
+                />
+                <textarea
+                  name="bio"
+                  value={profileData.bio}
+                  onChange={handleInputChange}
+                  placeholder="Bio"
+                  className="w-full border border-gray-300 rounded-lg p-2"
+                  rows="4"
+                  required
+                ></textarea>
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsFormOpen(false)}
+                className="mr-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
       )}
 
-      <div>
-      {blogs.map((blog) => (
-    <div key={blog.id} className="bg-white shadow-lg rounded-lg overflow-hidden mb-8">
-      <div className="p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          {blog.title}
-        </h1>
-        <p className="text-gray-700 leading-relaxed mb-4">
-          {blog.description}
-        </p>
-        {blog.image && (
-          <div className="mb-4 overflow-hidden" style={{ position: 'relative', paddingBottom: '56.25%' }}>
-            <img
-              src={`http://localhost:5555/${blog.image}`}
-              alt={blog.title}
-              style={{ 
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover' 
-              }}
-              className="mb-4"
-            />
-          </div>
-        )}
-              <div className="flex justify-end">
-                <button
-                  className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mr-2"
-                  onClick={() => handleEdit(blog)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                  onClick={() => handleDelete(blog.id)}
-                >
-                  Delete
-                </button>
+      {/* Display profiles information */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {profiles.map((profile, index) => (
+          <div key={index} className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg mt-10">
+            <div className="flex flex-col items-center md:flex-row md:items-start md:space-x-8">
+              <div className="flex-shrink-0 mb-6 md:mb-0">
+                {profile.imageUrl && (
+                  <img
+                    className="h-32 w-32 rounded-full object-cover"
+                    src={profile.imageUrl}
+                    alt="Profile"
+                  />
+                )}
+              </div>
+              <div className="text-center md:text-left">
+                <h1 className="text-4xl font-bold text-gray-900">{profile.name}</h1>
+                <p className="mt-2 text-gray-600">{profile.address}</p>
+                <p className="mt-1 text-gray-600">{profile.contact}</p>
+                <p className="mt-4 text-gray-700">{profile.bio}</p>
               </div>
             </div>
           </div>
@@ -212,4 +182,4 @@ const Blog = () => {
   );
 };
 
-export default Blog;
+export default Profile;
