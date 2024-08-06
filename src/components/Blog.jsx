@@ -8,6 +8,7 @@ const Blog = () => {
   const [description, setDescription] = useState('');
   const [image, setImage] = useState(null);
   const [editingBlogId, setEditingBlogId] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   useEffect(() => {
     fetchUserBlogs();
@@ -53,6 +54,7 @@ const Blog = () => {
       }
       fetchUserBlogs();
       resetForm();
+      setIsPopupOpen(false);
     } catch (error) {
       console.error('Error submitting blog:', error);
     }
@@ -74,6 +76,7 @@ const Blog = () => {
     setEditingBlogId(blog.id);
     setTitle(blog.title);
     setDescription(blog.description);
+    setIsPopupOpen(true);
   };
 
   const resetForm = () => {
@@ -83,52 +86,71 @@ const Blog = () => {
     setEditingBlogId(null);
   };
 
+  const PopupForm = () => (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" id="my-modal">
+      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div className="mt-3 text-center">
+          <h3 className="text-lg leading-6 font-medium text-gray-900">{editingBlogId ? 'Update Blog' : 'Create Blog'}</h3>
+          <form onSubmit={handleSubmit} className="mt-2 space-y-4">
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title"
+              required
+              className="w-full border border-gray-300 rounded-lg p-2"
+            />
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description"
+              required
+              className="w-full border border-gray-300 rounded-lg p-2"
+              rows="4"
+            />
+            <input
+              type="file"
+              onChange={(e) => setImage(e.target.files[0])}
+              className="border border-gray-300 rounded-lg p-2"
+            />
+            <div className="flex justify-end space-x-4">
+              <button
+                type="button"
+                onClick={() => {
+                  resetForm();
+                  setIsPopupOpen(false);
+                }}
+                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                {editingBlogId ? 'Update' : 'Create'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="max-w-4xl mx-auto my-8 p-4">
       <h1 className="text-3xl font-bold mb-4">My Blog</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4 mb-8">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Title"
-          required
-          className="w-full border border-gray-300 rounded-lg p-2"
-        />
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Description"
-          required
-          className="w-full border border-gray-300 rounded-lg p-2"
-          rows="4"
-        />
-        <input
-          type="file"
-          onChange={(e) => setImage(e.target.files[0])}
-          className="border border-gray-300 rounded-lg p-2"
-        />
-        <div className="flex space-x-4">
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            {editingBlogId ? 'Update Blog' : 'Create Blog'}
-          </button>
-          {editingBlogId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Cancel Edit
-            </button>
-          )}
-        </div>
-      </form>
+      <button
+        onClick={() => {
+          resetForm();
+          setIsPopupOpen(true);
+        }}
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4"
+      >
+        Create New Blog
+      </button>
 
-      <h2 className="text-2xl font-bold mb-4">My Blogs</h2>
       <div className="space-y-4">
         {blogs.map(blog => (
           <div key={blog.id} className="p-4 border border-gray-300 rounded-lg">
@@ -136,7 +158,7 @@ const Blog = () => {
             <p>{blog.description}</p>
             {blog.image && (
               <img
-                src={`http://localhost:5555${blog.image}`} // Ensure this is the correct path
+                src={`http://localhost:5555${blog.image}`}
                 alt={blog.title}
                 className="w-full h-auto mt-4"
               />
@@ -158,6 +180,8 @@ const Blog = () => {
           </div>
         ))}
       </div>
+
+      {isPopupOpen && <PopupForm />}
     </div>
   );
 };

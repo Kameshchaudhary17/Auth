@@ -1,180 +1,204 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Modal from './Modal';
 
 const Profile = () => {
-  const token = localStorage.getItem('token');
-  if (!token) return <h1>Please login</h1>;
-
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [profileData, setProfileData] = useState({
-    name: '',
-    address: '',
-    contact: '',
-    bio: '',
-    imageFile: null,
-    imageUrl: '',
-  });
+  const authToken = localStorage.getItem('token');
+  const [profile, setProfile] = useState(null);
+  const [name, setName] = useState('');
+  const [contact, setContact] = useState('');
+  const [address, setAddress] = useState('');
+  const [bio, setBio] = useState('');
+  const [image, setImage] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
+    fetchUserProfile();
   }, []);
 
-  const fetchProfile = async () => {
+  const fetchUserProfile = async () => {
     try {
       const response = await axios.get('http://localhost:5555/getprofile', {
         withCredentials: true,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${authToken}` }
       });
-      const profile = response.data;
-      setProfileData({
-        ...profile,
-        imageFile: null,
-        imageUrl: profile.image ? `http://localhost:5555/${profile.image}` : '',
-      });
+      if (response.data.length > 0) {
+        const userProfile = response.data[0];
+        setProfile(userProfile);
+        setName(userProfile.name);
+        setContact(userProfile.contact);
+        setAddress(userProfile.address);
+        setBio(userProfile.bio);
+        setImage(userProfile.image);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setProfileData((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-  const handleFileChange = (e) => {
-    setProfileData((prevData) => ({ ...prevData, imageFile: e.target.files[0] }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('contact', contact);
+    formData.append('address', address);
+    formData.append('bio', bio);
+    if (image) formData.append('image', image);
 
     try {
-      const formData = new FormData();
-      formData.append('name', profileData.name);
-      formData.append('address', profileData.address);
-      formData.append('contact', profileData.contact);
-      formData.append('bio', profileData.bio);
-      if (profileData.imageFile) {
-        formData.append('image', profileData.imageFile);
+      if (editing) {
+        formData.append('id', profile.id);
+        await axios.put('http://localhost:5555/updateprofile', formData, {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      } else {
+        await axios.post('http://localhost:5555/createprofile', formData, {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
       }
-
-      await axios.post('http://localhost:5555/createprofile', formData, {
-        withCredentials: true,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      setIsFormOpen(false);
-      fetchProfile(); // Refresh profile data after creation
+      fetchUserProfile();
+      resetForm();
+      setShowModal(false);
     } catch (error) {
-      console.error('Error creating profile:', error);
+      console.error('Error submitting profile:', error);
     }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`http://localhost:5555/deleteprofile/${profile.id}`, {
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      setProfile(null);
+      resetForm();
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+    }
+  };
+
+  const resetForm = () => {
+    setName('');
+    setContact('');
+    setAddress('');
+    setBio('');
+    setImage(null);
+    setEditing(false);
   };
 
   return (
     <div className="max-w-4xl mx-auto my-8 p-4">
+      <h1 className="text-3xl font-bold mb-4">Profile</h1>
+
       <button
-        onClick={() => setIsFormOpen(true)}
-        className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        onClick={() => {
+          setEditing(false);
+          setShowModal(true);
+        }}
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-8"
       >
-        Add Profile
+        Create Profile
       </button>
 
-      {isFormOpen && (
-        <div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex flex-col items-center md:flex-row md:items-start md:space-x-8">
-              <div className="flex-shrink-0 mb-6 md:mb-0">
-                <input
-                  type="file"
-                  name="image"
-                  onChange={handleFileChange}
-                  className="border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div className="w-full">
-                <input
-                  type="text"
-                  name="name"
-                  value={profileData.name}
-                  onChange={handleInputChange}
-                  placeholder="Name"
-                  className="w-full border border-gray-300 rounded-lg p-2 mb-4"
-                  required
-                />
-                <input
-                  type="text"
-                  name="address"
-                  value={profileData.address}
-                  onChange={handleInputChange}
-                  placeholder="Address"
-                  className="w-full border border-gray-300 rounded-lg p-2 mb-4"
-                  required
-                />
-                <input
-                  type="text"
-                  name="contact"
-                  value={profileData.contact}
-                  onChange={handleInputChange}
-                  placeholder="Contact"
-                  className="w-full border border-gray-300 rounded-lg p-2 mb-4"
-                  required
-                />
-                <textarea
-                  name="bio"
-                  value={profileData.bio}
-                  onChange={handleInputChange}
-                  placeholder="Bio"
-                  className="w-full border border-gray-300 rounded-lg p-2"
-                  rows="4"
-                  required
-                ></textarea>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsFormOpen(false)}
-                className="mr-4 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Save
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Display profile information */}
-      {profileData.name && (
-        <div className="max-w-3xl mx-auto p-8 bg-white rounded-lg shadow-lg mt-10">
-          <div className="flex flex-col items-center md:flex-row md:items-start md:space-x-8">
-            <div className="flex-shrink-0 mb-6 md:mb-0">
-              {profileData.imageUrl && (
-                <img
-                  className="h-32 w-32 rounded-full object-cover"
-                  src={profileData.imageUrl}
-                  alt="Profile"
-                />
-              )}
-            </div>
-            <div className="text-center md:text-left">
-              <h1 className="text-4xl font-bold text-gray-900">{profileData.name}</h1>
-              <p className="mt-2 text-gray-600">{profileData.address}</p>
-              <p className="mt-1 text-gray-600">{profileData.contact}</p>
-              <p className="mt-4 text-gray-700">{profileData.bio}</p>
-            </div>
+      {profile && (
+        <div className="p-4 border border-gray-300 rounded-lg">
+          <h3 className="text-xl font-bold">{profile.name}</h3>
+          <p>Contact: {profile.contact}</p>
+          <p>Address: {profile.address}</p>
+          <p>Bio: {profile.bio}</p>
+          {profile.image && (
+            <img
+              src={`http://localhost:5555${profile.image}`}
+              alt={profile.name}
+              className="w-full h-auto mt-4"
+            />
+          )}
+          <div className="flex space-x-4 mt-4">
+            <button
+              onClick={() => {
+                setEditing(true);
+                setShowModal(true);
+              }}
+              className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Delete
+            </button>
           </div>
         </div>
       )}
+
+      <Modal show={showModal} onClose={() => setShowModal(false)}>
+        <h2 className="text-2xl font-bold mb-4">{editing ? 'Edit Profile' : 'Create Profile'}</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name"
+            required
+            className="w-full border border-gray-300 rounded-lg p-2"
+          />
+          <input
+            type="text"
+            value={contact}
+            onChange={(e) => setContact(e.target.value)}
+            placeholder="Contact"
+            required
+            className="w-full border border-gray-300 rounded-lg p-2"
+          />
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="Address"
+            required
+            className="w-full border border-gray-300 rounded-lg p-2"
+          />
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="Bio"
+            required
+            className="w-full border border-gray-300 rounded-lg p-2"
+            rows="4"
+          />
+          <input
+            type="file"
+            onChange={(e) => setImage(e.target.files[0])}
+            className="border border-gray-300 rounded-lg p-2"
+          />
+          <div className="flex space-x-4">
+            <button
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              {editing ? 'Update Profile' : 'Create Profile'}
+            </button>
+            <button
+              type="button"
+              onClick={resetForm}
+              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
