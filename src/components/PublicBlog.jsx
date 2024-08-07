@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import ErrorMessage from './ErrorMessage';
 
 const PublicBlog = () => {
 
   const token = localStorage.getItem('token');
-  if (!token) return <h1>Please login</h1>;
+  if (!token) return <ErrorMessage/>;
 
   const [blogs, setBlogs] = useState([]);
 

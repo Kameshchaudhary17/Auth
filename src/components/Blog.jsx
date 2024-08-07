@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import ErrorMessage from './ErrorMessage';
 
 const Blog = () => {
   const authToken = localStorage.getItem('token');
+  if(!authToken) return <ErrorMessage/>
+
   const [blogs, setBlogs] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');

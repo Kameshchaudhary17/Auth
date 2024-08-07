@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
+import ErrorMessage from './ErrorMessage';
 
 const Profile = () => {
   const authToken = localStorage.getItem('token');
+  if(!authToken) return <ErrorMessage/>
+
+
+
   const [profile, setProfile] = useState(null);
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
