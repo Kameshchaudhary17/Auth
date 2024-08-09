@@ -5,9 +5,7 @@ import ErrorMessage from './ErrorMessage';
 
 const Profile = () => {
   const authToken = localStorage.getItem('token');
-  if(!authToken) return <ErrorMessage/>
-
-
+  if (!authToken) return <ErrorMessage />;
 
   const [profile, setProfile] = useState(null);
   const [name, setName] = useState('');
@@ -36,6 +34,7 @@ const Profile = () => {
         setAddress(userProfile.address);
         setBio(userProfile.bio);
         setImage(userProfile.image);
+        setEditing(true); // Switch to editing mode since a profile already exists
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -69,6 +68,7 @@ const Profile = () => {
             'Content-Type': 'multipart/form-data'
           }
         });
+        setEditing(true); // Switch to editing mode after profile creation
       }
       fetchUserProfile();
       resetForm();
@@ -86,6 +86,7 @@ const Profile = () => {
       });
       setProfile(null);
       resetForm();
+      setEditing(false); // Switch to creation mode after profile deletion
     } catch (error) {
       console.error('Error deleting profile:', error);
     }
@@ -105,13 +106,10 @@ const Profile = () => {
       <h1 className="text-3xl font-bold mb-4">Profile</h1>
 
       <button
-        onClick={() => {
-          setEditing(false);
-          setShowModal(true);
-        }}
+        onClick={() => setShowModal(true)}
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-8"
       >
-        Create Profile
+        {editing ? 'Edit Profile' : 'Create Profile'}
       </button>
 
       {profile && (
@@ -128,15 +126,6 @@ const Profile = () => {
             />
           )}
           <div className="flex space-x-4 mt-4">
-            <button
-              onClick={() => {
-                setEditing(true);
-                setShowModal(true);
-              }}
-              className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Edit
-            </button>
             <button
               onClick={handleDelete}
               className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
